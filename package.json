@@ -1,0 +1,20 @@
+{
+  "name": "toegankelijkheidstester",
+  "version": "1.0.0",
+  "description": "WCAG 2.1 AA toegankelijkheidsscanner voor overheidswebsites (EN 301 549)",
+  "main": "src/index.js",
+  "bin": {
+    "toegankelijkheidstester": "src/cli.js"
+  },
+  "scripts": {
+    "start": "node src/cli.js",
+    "test": "node src/cli.js --url https://example.com"
+  },
+  "dependencies": {
+    "playwright": "^1.40.0",
+    "axe-core": "^4.8.0",
+    "commander": "^11.1.0",
+    "chalk": "^5.3.0",
+    "open": "^10.0.0"
+  }
+}
