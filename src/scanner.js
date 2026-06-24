@@ -12,13 +12,21 @@ function findChromiumPath() {
   }
   // 2. Bekende paden (Linux, macOS, Windows)
   const candidates = [
-    // Linux systeem
-    '/usr/bin/chromium-browser',
-    '/usr/bin/chromium',
+    // Windows – Edge (standaard aanwezig op Windows 10/11)
+    'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+    'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
+    // macOS – Edge
+    '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
+    // Linux – Edge
+    '/usr/bin/microsoft-edge',
+    '/usr/bin/microsoft-edge-stable',
+    // Linux – Chrome/Chromium
     '/usr/bin/google-chrome',
     '/usr/bin/google-chrome-stable',
+    '/usr/bin/chromium-browser',
+    '/usr/bin/chromium',
     '/snap/bin/chromium',
-    // macOS
+    // macOS – Chrome/Chromium
     '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
     '/Applications/Chromium.app/Contents/MacOS/Chromium',
     // Cloud-omgeving (fallback)

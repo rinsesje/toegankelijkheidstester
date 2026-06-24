@@ -18,12 +18,19 @@ npm install
 npx playwright install chromium
 ```
 
-> **Heb je al Chrome of Chromium geïnstalleerd?** Dan kun je stap 3 overslaan
-> en in plaats daarvan de omgevingsvariabele instellen:
+> **Heb je al Edge, Chrome of Chromium geïnstalleerd?** Dan kun je stap 3 overslaan.
+> De tool detecteert Edge automatisch op Windows. Lukt dat niet, stel dan handmatig in:
 >
 > ```bash
-> export CHROMIUM_PATH="/usr/bin/google-chrome"   # Linux
-> export CHROMIUM_PATH="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"  # macOS
+> # Windows (PowerShell) – Edge
+> $env:CHROMIUM_PATH="C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
+> node src/cli.js --url https://www.rijksoverheid.nl
+>
+> # macOS – Edge
+> export CHROMIUM_PATH="/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge"
+>
+> # Linux – Edge
+> export CHROMIUM_PATH="/usr/bin/microsoft-edge"
 > ```
 
 ## Gebruik
@@ -45,7 +52,7 @@ Het rapport wordt opgeslagen als `rapport.html` en kun je openen in je browser.
 ### Voorbeelden
 
 ```bash
-# Basisgebruik
+# Basisgebruik (Edge wordt automatisch gevonden op Windows)
 node src/cli.js --url https://www.rijksoverheid.nl
 
 # Aangepaste bestandsnaam
@@ -53,9 +60,12 @@ node src/cli.js --url https://www.gemeente-amsterdam.nl --output amsterdam.html
 
 # Inclusief JSON-export
 node src/cli.js --url https://www.duo.nl --output duo.html --json
+```
 
-# Met eigen Chrome-installatie (geen Playwright-browser nodig)
-CHROMIUM_PATH="/usr/bin/google-chrome" node src/cli.js --url https://www.overheid.nl
+**Windows PowerShell met Edge (als automatische detectie niet werkt):**
+```powershell
+$env:CHROMIUM_PATH="C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
+node src/cli.js --url https://www.rijksoverheid.nl
 ```
 
 ## Wat controleert de tool?
