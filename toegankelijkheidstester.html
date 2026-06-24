@@ -149,7 +149,7 @@ footer{background:#2c3e50;color:#aaa;text-align:center;padding:1.25rem;font-size
 <!-- Config -->
 <div class="cfg">
   <div class="url-rij">
-    <input type="url" id="url-in" placeholder="https://www.rijksoverheid.nl" aria-label="Website-adres">
+    <input type="text" id="url-in" placeholder="www.nederlandwereldwijd.nl" aria-label="Website-adres">
     <button id="scan-knop" onclick="startScan()">Scannen</button>
   </div>
 
@@ -207,34 +207,70 @@ footer{background:#2c3e50;color:#aaa;text-align:center;padding:1.25rem;font-size
 <script>
 "use strict";
 
-/* ═══════════════════════════════════════════════
-   1. CORS-PROXIES – parallel racen voor snelheid
-   ═══════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════
+   1. CORS-PROXIES – sequentieel met retry en proxy-geheugen
+      (zelfde aanpak als NWW-tools van dezelfde organisatie)
+   ═══════════════════════════════════════════════════════════ */
+const PROXIES = [
+  { naam: "eigen Worker",
+    bouw: u => "https://jolly-queen-1584.nederlander.workers.dev/?" + u,
+    parse: r => r.text(), timeout: 30000 },
+  { naam: "cors.lol",
+    bouw: u => "https://api.cors.lol/?url=" + encodeURIComponent(u),
+    parse: r => r.text() },
+  { naam: "allorigins-raw",
+    bouw: u => "https://api.allorigins.win/raw?url=" + encodeURIComponent(u),
+    parse: r => r.text() },
+  { naam: "allorigins-get",
+    bouw: u => "https://api.allorigins.win/get?url=" + encodeURIComponent(u),
+    parse: async r => { const d = await r.json(); return d.contents || ""; } },
+  { naam: "codetabs",
+    bouw: u => "https://api.codetabs.com/v1/proxy/?quest=" + encodeURIComponent(u),
+    parse: r => r.text() },
+];
+const RETRY_WACHTEN = [0, 800, 1600]; // ms wachten voor elke poging
+let werkendProxyIdx = 0;
+
+function isRetrybaar(err) {
+  const m = String(err?.message || err || "");
+  return err?.name === "AbortError" || /timeout/i.test(m) ||
+    /HTTP (408|429|5\d\d)/.test(m) ||
+    /Failed to fetch|NetworkError|Load failed/i.test(m);
+}
+
+function metTimeout(promise, ms, label) {
+  return Promise.race([
+    promise,
+    new Promise((_, rej) => setTimeout(() => rej(new Error(label + ": timeout")), ms))
+  ]);
+}
+
 async function haalPagina(url) {
-  const proxies = [
-    `https://api.cors.lol/?url=${encodeURIComponent(url)}`,
-    `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-    `https://corsproxy.io/?${encodeURIComponent(url)}`,
-    `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
-  ];
+  const volgorde = PROXIES.map((_, i) => (werkendProxyIdx + i) % PROXIES.length);
+  const pogingen = [];
 
-  // Probeer alle proxies tegelijk; gebruik eerste die slaagt
-  const taken = proxies.map(async (proxyUrl) => {
-    const r = await fetch(proxyUrl, { signal: AbortSignal.timeout(20000) });
-    if (!r.ok) throw new Error("HTTP " + r.status);
-    if (proxyUrl.includes("allorigins.win/get")) {
-      const j = await r.json();
-      if (!j.contents) throw new Error("leeg");
-      return j.contents;
+  for (const idx of volgorde) {
+    const proxy = PROXIES[idx];
+    const ms = proxy.timeout || 20000;
+    for (let p = 0; p < RETRY_WACHTEN.length; p++) {
+      if (RETRY_WACHTEN[p]) await new Promise(r => setTimeout(r, RETRY_WACHTEN[p]));
+      try {
+        const res = await metTimeout(fetch(proxy.bouw(url), { redirect: "follow" }), ms, proxy.naam);
+        if (!res.ok) {
+          pogingen.push(proxy.naam + ": HTTP " + res.status);
+          if (isRetrybaar(new Error("HTTP " + res.status))) continue; else break;
+        }
+        const tekst = await metTimeout(proxy.parse(res), ms, proxy.naam + " parse");
+        if (!tekst || tekst.length < 10) { pogingen.push(proxy.naam + ": leeg"); break; }
+        werkendProxyIdx = idx; // onthoud welke proxy werkte
+        return tekst;
+      } catch(e) {
+        pogingen.push(proxy.naam + ": " + e.message);
+        if (!isRetrybaar(e)) break;
+      }
     }
-    return r.text();
-  });
-
-  try {
-    return await Promise.any(taken);
-  } catch {
-    throw new Error("Alle proxies mislukt. Controleer het adres en je internetverbinding.");
   }
+  throw new Error("Alle proxies mislukt (" + pogingen.slice(-3).join("; ") + "). Controleer het adres en je internetverbinding.");
 }
 
 /* ═══════════════════════════════════════════
@@ -1196,16 +1232,20 @@ function toonDetail(catId){
     const wcagBadge=ch.wcag?`<span class="badge badge-wcag">WCAG ${ch.wcag}</span>`:"";
     const levelBadge=ch.level?`<span class="badge badge-${ch.level.toLowerCase()}">${ch.level}</span>`:"";
 
-    const nodeHtml=(!r.ok&&r.nodes?.length)?`
+    const nodeHtml=r.nodes?.length?`
       <div class="veld">
-        <h4>${r.paginas?"Gevonden op pagina's":"Gevonden in de code"}</h4>
+        <h4>${r.ok?"Gecontroleerde elementen":(r.paginas?"Gevonden op pagina's":"Gevonden in de code")} (${r.tel||r.nodes.length})</h4>
         ${r.nodes.slice(0,4).map(n=>`<div class="code-blok"><pre>${esc(n)}</pre></div>`).join("")}
       </div>`:"";
 
-    const telTekst=r.tel>0?`${r.tel} ${r.paginas?"pagina(s)":"voorkomens"}`:statusText;
+    const telTekst=!r.ok&&r.tel>0?`${r.tel} ${r.paginas?"pagina(s)":"voorkomens"}`:statusText;
+    // Mislukte checks standaard open, geslaagde checks dichtgeklapt
+    const startOpen=!r.ok;
+    // Randkleur geeft meteen de status aan
+    const randKleur=r.ok?"border-left:3px solid var(--groen)":"border-left:3px solid "+(ch.impact==="kritiek"||ch.impact==="ernstig"?"var(--rood)":ch.impact==="matig"?"#2471a3":"var(--groen)");
 
     return `
-    <div class="check-item${r.ok?"":" open"}" id="ci${catId}_${i}">
+    <div class="check-item${startOpen?" open":""}" id="ci${catId}_${i}" style="${randKleur}">
       <div class="check-kop" onclick="this.closest('.check-item').classList.toggle('open')"
            role="button" tabindex="0"
            onkeydown="if(event.key==='Enter'||event.key===' ')this.closest('.check-item').classList.toggle('open')">
@@ -1269,7 +1309,9 @@ async function startScan(){
   const knop=document.getElementById("scan-knop");
   let url=document.getElementById("url-in").value.trim();
   if(!url){ document.getElementById("url-in").focus(); return; }
-  if(!url.startsWith("http")) url="https://"+url;
+  if(!/^https?:\/\//i.test(url)) url="https://"+url;
+  // Schrijf genormaliseerde URL terug
+  document.getElementById("url-in").value=url;
 
   verbergFout();
   document.getElementById("dashboard").style.display="none";
