@@ -1,149 +1,700 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Toegankelijkheidstester</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-      background: #f0f4f8;
-      color: #1a1a2e;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem;
-    }
-    .card {
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-      padding: 2.5rem;
-      max-width: 600px;
-      width: 100%;
-    }
-    .logo { font-size: 3rem; text-align: center; margin-bottom: 1rem; }
-    h1 { text-align: center; font-size: 1.6rem; color: #154273; margin-bottom: 0.5rem; }
-    .subtitle { text-align: center; color: #666; font-size: 0.95rem; margin-bottom: 2rem; }
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Toegankelijkheidstester – WCAG 2.1 AA</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  background: #f0f4f8;
+  color: #1a1a2e;
+  min-height: 100vh;
+}
 
-    .steps { counter-reset: step; display: flex; flex-direction: column; gap: 1.5rem; }
-    .step { display: flex; gap: 1rem; align-items: flex-start; }
-    .step-number {
-      counter-increment: step;
-      background: #154273;
-      color: white;
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 0.9rem;
-      flex-shrink: 0;
-      margin-top: 2px;
-    }
-    .step-content h2 { font-size: 1rem; margin-bottom: 0.3rem; color: #154273; }
-    .step-content p { font-size: 0.9rem; color: #555; line-height: 1.5; }
+/* ── Header ── */
+.header {
+  background: linear-gradient(135deg, #154273 0%, #1e6bb8 100%);
+  color: white;
+  padding: 2rem;
+  text-align: center;
+}
+.header h1 { font-size: 1.8rem; margin-bottom: 0.25rem; }
+.header p  { opacity: 0.8; font-size: 0.9rem; }
 
-    .bookmarklet-wrapper {
-      margin: 0.75rem 0;
-      padding: 1rem;
-      background: #eef4ff;
-      border: 2px dashed #7aabf0;
-      border-radius: 10px;
-      text-align: center;
-    }
-    .bookmarklet-wrapper p {
-      font-size: 0.8rem;
-      color: #555;
-      margin-bottom: 0.75rem;
-    }
-    .bookmarklet-btn {
-      display: inline-block;
-      background: linear-gradient(135deg, #154273, #1e6bb8);
-      color: white !important;
-      text-decoration: none;
-      padding: 0.7rem 1.5rem;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 700;
-      cursor: grab;
-      box-shadow: 0 4px 12px rgba(21,66,115,0.3);
-      user-select: none;
-    }
-    .bookmarklet-btn:hover { opacity: 0.9; }
+/* ── Zoekbalk ── */
+.search-box {
+  max-width: 700px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+.search-row {
+  display: flex;
+  gap: 0.5rem;
+  background: white;
+  border-radius: 12px;
+  padding: 0.5rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+}
+.search-row input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 8px;
+  color: #1a1a2e;
+}
+.search-row button {
+  background: #154273;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.search-row button:hover { background: #1e6bb8; }
+.search-row button:disabled { background: #999; cursor: not-allowed; }
+.hint { text-align: center; font-size: 0.8rem; color: #888; margin-top: 0.5rem; }
 
-    .tip {
-      background: #fff8e1;
-      border-left: 4px solid #f9a825;
-      border-radius: 4px;
-      padding: 0.75rem 1rem;
-      font-size: 0.85rem;
-      color: #555;
-      margin-top: 0.75rem;
-    }
-    .tip strong { color: #e65100; }
+/* ── Status ── */
+#status {
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.95rem;
+  color: #555;
+  display: none;
+}
+.spinner {
+  display: inline-block;
+  width: 18px; height: 18px;
+  border: 3px solid #ddd;
+  border-top-color: #154273;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 
-    .divider { border: none; border-top: 1px solid #eee; margin: 2rem 0; }
+/* ── Rapport ── */
+#rapport { max-width: 900px; margin: 0 auto; padding: 0 1rem 4rem; display: none; }
 
-    .footer { text-align: center; font-size: 0.8rem; color: #999; margin-top: 2rem; }
-    .footer a { color: #154273; }
-  </style>
+.score-kaart {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+.score-cirkel {
+  width: 100px; height: 100px;
+  border-radius: 50%;
+  border: 7px solid;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.score-cirkel .getal { font-size: 2rem; font-weight: 800; line-height: 1; }
+.score-cirkel .van   { font-size: 0.7rem; font-weight: 600; }
+.score-info h2 { font-size: 1.1rem; color: #154273; margin-bottom: 0.5rem; }
+.score-info p  { font-size: 0.85rem; color: #666; }
+.tellers {
+  display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.75rem;
+}
+.teller {
+  border-radius: 8px; padding: 0.5rem 0.75rem; text-align: center; min-width: 70px;
+}
+.teller .n { font-size: 1.4rem; font-weight: 700; }
+.teller .l { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
+.teller.kritiek  { background: #fdf0ef; color: #c0392b; }
+.teller.ernstig  { background: #fef4ec; color: #d35400; }
+.teller.matig    { background: #eaf2fb; color: #2471a3; }
+.teller.klein    { background: #eafaf1; color: #1e8449; }
+
+.sectie-titel {
+  font-size: 1.1rem; font-weight: 700; color: #154273;
+  margin: 1.5rem 0 0.75rem; padding-bottom: 0.4rem;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+/* ── Probleem-kaart ── */
+.kaart {
+  background: white;
+  border-radius: 10px;
+  margin-bottom: 0.75rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  overflow: hidden;
+}
+.kaart-kop {
+  padding: 0.9rem 1.1rem;
+  cursor: pointer;
+  display: flex; align-items: flex-start; gap: 0.75rem;
+  border-left: 5px solid;
+}
+.kaart-kop:hover { opacity: 0.9; }
+.kaart-kop-tekst { flex: 1; }
+.kaart-kop-tekst h3 { font-size: 0.95rem; color: #1a1a2e; margin-bottom: 0.3rem; }
+.kaart-kop-tekst .meta { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.badge {
+  display: inline-block; padding: 0.15rem 0.5rem;
+  border-radius: 4px; font-size: 0.7rem; font-weight: 700;
+  text-transform: uppercase;
+}
+.badge-ernst { color: white; }
+.badge-wcag  { background: #dde7f7; color: #154273; }
+.badge-level-a  { background: #e8f5e9; color: #2e7d32; }
+.badge-level-aa { background: #fff3e0; color: #e65100; }
+.pijl {
+  font-size: 0.75rem; color: #999; margin-top: 3px;
+  transition: transform 0.2s; flex-shrink: 0;
+}
+.kaart.open .pijl { transform: rotate(180deg); }
+
+.kaart-body { padding: 1rem 1.1rem; border-top: 1px solid #f0f0f0; display: none; }
+.kaart.open .kaart-body { display: block; }
+
+.kaart-body .sectie { margin-bottom: 0.9rem; }
+.kaart-body h4 {
+  font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+  color: #888; letter-spacing: 0.04em; margin-bottom: 0.35rem;
+}
+.kaart-body p { font-size: 0.875rem; color: #444; line-height: 1.55; }
+.oplossing {
+  background: #f0faf4; border: 1px solid #c3e6cb;
+  border-radius: 6px; padding: 0.75rem;
+}
+.oplossing h4 { color: #155724; }
+.oplossing p  { color: #155724; }
+.code-voorbeeld {
+  background: #f8f9fa; border: 1px solid #dee2e6;
+  border-radius: 6px; padding: 0.75rem; margin-top: 0.5rem;
+}
+.code-voorbeeld pre {
+  font-size: 0.78rem; font-family: 'Courier New', monospace;
+  color: #c0392b; white-space: pre-wrap; word-break: break-all;
+  overflow-x: auto;
+}
+.voorkomens { font-size: 0.8rem; color: #888; margin-top: 0.3rem; }
+
+.geen-fouten {
+  text-align: center; padding: 2.5rem;
+  background: white; border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.geen-fouten .icon { font-size: 3rem; display: block; margin-bottom: 0.5rem; }
+
+.fout-melding {
+  background: #fdf0ef; border: 1px solid #f5c6cb;
+  border-radius: 10px; padding: 1.25rem;
+  text-align: center; color: #c0392b;
+  margin: 1rem auto; max-width: 700px;
+}
+
+.handmatig {
+  background: white; border-radius: 10px; padding: 1rem 1.1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  font-size: 0.85rem; color: #555;
+}
+.handmatig ul { padding-left: 1.2rem; margin-top: 0.5rem; line-height: 2; }
+</style>
 </head>
 <body>
-<div class="card">
-  <div class="logo">♿</div>
-  <h1>Toegankelijkheidstester</h1>
-  <p class="subtitle">Controleer websites op WCAG 2.1 AA – vereist voor de overheid</p>
 
-  <div class="steps">
+<header class="header">
+  <h1>♿ Toegankelijkheidstester</h1>
+  <p>WCAG 2.1 AA scanner · Besluit digitale toegankelijkheid overheid · EN 301 549</p>
+</header>
 
-    <div class="step">
-      <div class="step-number">1</div>
-      <div class="step-content">
-        <h2>Eenmalig: sleep de knop naar je favorietenbalk</h2>
-        <p>Klik op de knop hieronder, houd de muisknop ingedrukt en sleep hem naar de favorietenbalk van Edge (de balk bovenin de browser).</p>
-
-        <div class="bookmarklet-wrapper">
-          <p>⬇ Sleep deze knop naar je favorietenbalk ⬇</p>
-          <a class="bookmarklet-btn" href="javascript:(function(){var REMEDIATIONS={&quot;color-contrast&quot;:{wcag:&quot;1.4.3&quot;,level:&quot;AA&quot;,title:&quot;Onvoldoende kleurcontrast&quot;,fix:&quot;Zorg dat tekst een contrastverhouding heeft van minimaal 4,5:1 ten opzichte van de achtergrond. Controleer met de WebAIM Contrast Checker en pas tekst- of achtergrondkleur aan.&quot;},&quot;image-alt&quot;:{wcag:&quot;1.1.1&quot;,level:&quot;A&quot;,title:&quot;Afbeelding zonder alternatieve tekst&quot;,fix:&quot;Voeg een beschrijvend alt-attribuut toe: &lt;img alt=\'beschrijving\'&gt;. Decoratieve afbeeldingen krijgen een leeg alt: &lt;img alt=\'\'&gt;.&quot;},&quot;label&quot;:{wcag:&quot;1.3.1&quot;,level:&quot;A&quot;,title:&quot;Formulierveld zonder label&quot;,fix:&quot;Koppel elk formulierveld aan een label via het for/id-attribuut: &lt;label for=\'veld\'&gt;Naam&lt;/label&gt;&lt;input id=\'veld\'&gt;. Placeholder is geen vervanging voor een label.&quot;},&quot;button-name&quot;:{wcag:&quot;4.1.2&quot;,level:&quot;A&quot;,title:&quot;Knop zonder toegankelijke naam&quot;,fix:&quot;Geef elke knop een beschrijvende tekst. Voor icoonknoppen: gebruik aria-label=\'Omschrijving\'.&quot;},&quot;link-name&quot;:{wcag:&quot;2.4.4&quot;,level:&quot;A&quot;,title:&quot;Link zonder beschrijvende tekst&quot;,fix:&quot;Zorg dat elke link een beschrijvende tekst heeft. Vermijd \'klik hier\' of \'lees meer\' zonder context.&quot;},&quot;document-title&quot;:{wcag:&quot;2.4.2&quot;,level:&quot;A&quot;,title:&quot;Paginatitel ontbreekt&quot;,fix:&quot;Voeg een unieke beschrijvende &lt;title&gt; toe: &lt;title&gt;Paginanaam - Sitenaam&lt;/title&gt;.&quot;},&quot;html-has-lang&quot;:{wcag:&quot;3.1.1&quot;,level:&quot;A&quot;,title:&quot;Paginataal niet ingesteld&quot;,fix:&quot;Voeg het lang-attribuut toe aan het html-element: &lt;html lang=\'nl\'&gt;.&quot;},&quot;landmark-one-main&quot;:{wcag:&quot;1.3.6&quot;,level:&quot;AA&quot;,title:&quot;Geen main-landmark aanwezig&quot;,fix:&quot;Voeg &eacute;&eacute;n &lt;main&gt;-element toe aan de hoofdinhoud van elke pagina.&quot;},&quot;heading-order&quot;:{wcag:&quot;1.3.1&quot;,level:&quot;A&quot;,title:&quot;Koppenstructuur slaat niveaus over&quot;,fix:&quot;Gebruik koppen in logische volgorde: &eacute;&eacute;n h1, daarna h2, h3 etc. Sla geen niveaus over.&quot;},&quot;frame-title&quot;:{wcag:&quot;2.4.1&quot;,level:&quot;A&quot;,title:&quot;Iframe zonder titel&quot;,fix:&quot;Voeg een beschrijvend title-attribuut toe aan elk iframe.&quot;},&quot;duplicate-id&quot;:{wcag:&quot;4.1.1&quot;,level:&quot;A&quot;,title:&quot;Dubbel id-attribuut&quot;,fix:&quot;Elk id-attribuut moet uniek zijn op de pagina. Pas dubbele id-waarden aan.&quot;},&quot;bypass&quot;:{wcag:&quot;2.4.1&quot;,level:&quot;A&quot;,title:&quot;Geen skip-link aanwezig&quot;,fix:&quot;Voeg een \'Sla naar hoofdinhoud\'-link toe als eerste element: &lt;a href=\'#main\'&gt;Sla naar inhoud&lt;/a&gt;.&quot;},&quot;scrollable-region-focusable&quot;:{wcag:&quot;2.1.1&quot;,level:&quot;A&quot;,title:&quot;Scrollbaar gebied niet toetsenbordtoegankelijk&quot;,fix:&quot;Voeg tabindex=\'0\' toe aan scrollbare gebieden zodat toetsenbordgebruikers er naartoe kunnen navigeren.&quot;},&quot;select-name&quot;:{wcag:&quot;4.1.2&quot;,level:&quot;A&quot;,title:&quot;Selectielijst zonder toegankelijke naam&quot;,fix:&quot;Koppel een &lt;label&gt; aan elke &lt;select&gt;.&quot;},&quot;video-caption&quot;:{wcag:&quot;1.2.2&quot;,level:&quot;A&quot;,title:&quot;Video zonder ondertitels&quot;,fix:&quot;Voeg ondertitels toe via &lt;track kind=\'captions\'&gt; in het WebVTT-formaat.&quot;}};var IMPACT={critical:{nl:&quot;Kritiek&quot;,color:&quot;#c0392b&quot;,bg:&quot;#fdf0ef&quot;},serious:{nl:&quot;Ernstig&quot;,color:&quot;#d35400&quot;,bg:&quot;#fef4ec&quot;},moderate:{nl:&quot;Matig&quot;,color:&quot;#2471a3&quot;,bg:&quot;#eaf2fb&quot;},minor:{nl:&quot;Klein&quot;,color:&quot;#1e8449&quot;,bg:&quot;#eafaf1&quot;}};if(document.getElementById(&quot;__a11y_panel__&quot;)){document.getElementById(&quot;__a11y_panel__&quot;).remove();return;}var panel=document.createElement(&quot;div&quot;);panel.id=&quot;__a11y_panel__&quot;;panel.style.cssText=&quot;all:initial;position:fixed;top:0;right:0;width:420px;max-width:100vw;height:100vh;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,0.18);z-index:2147483647;font-family:system-ui,sans-serif;font-size:14px;display:flex;flex-direction:column;overflow:hidden;&quot;;panel.innerHTML=&apos;&lt;div style=&quot;background:linear-gradient(135deg,#154273,#1e6bb8);color:white;padding:16px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0&quot;&gt;&lt;div&gt;&lt;div style=&quot;font-weight:700;font-size:16px&quot;&gt;&#9851; Toegankelijkheidstester&lt;/div&gt;&lt;div style=&quot;opacity:0.8;font-size:12px;margin-top:2px&quot;&gt;WCAG 2.1 AA scanner&lt;/div&gt;&lt;/div&gt;&lt;button id=&quot;__a11y_close__&quot; style=&quot;background:rgba(255,255,255,0.2);border:none;color:white;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center&quot;&gt;&amp;times;&lt;/button&gt;&lt;/div&gt;&lt;div id=&quot;__a11y_body__&quot; style=&quot;overflow-y:auto;flex:1;padding:16px&quot;&gt;&lt;div style=&quot;text-align:center;padding:40px 20px;color:#888&quot;&gt;&#128269; Bezig met scannen...&lt;/div&gt;&lt;/div&gt;&apos;;document.body.appendChild(panel);document.getElementById(&quot;__a11y_close__&quot;).onclick=function(){panel.remove();};var body=document.getElementById(&quot;__a11y_body__&quot;);function esc(s){return String(s||&quot;&quot;).replace(/&amp;/g,&quot;&amp;amp;&quot;).replace(/&lt;/g,&quot;&amp;lt;&quot;).replace(/&gt;/g,&quot;&amp;gt;&quot;);}function render(results){var v=results.violations;var score=Math.max(0,100-v.reduce(function(s,x){return s+({critical:20,serious:10,moderate:5,minor:2}[x.impact]||0);},0));var sc=score&gt;=80?&quot;#27ae60&quot;:score&gt;=60?&quot;#e67e22&quot;:&quot;#e74c3c&quot;;var html=&apos;&lt;div style=&quot;text-align:center;margin-bottom:16px&quot;&gt;&lt;div style=&quot;display:inline-flex;align-items:center;justify-content:center;flex-direction:column;width:90px;height:90px;border-radius:50%;border:6px solid &apos;+sc+&apos;;color:&apos;+sc+&apos;&quot;&gt;&lt;span style=&quot;font-size:28px;font-weight:800;line-height:1&quot;&gt;&apos;+score+&apos;&lt;/span&gt;&lt;span style=&quot;font-size:10px;font-weight:600&quot;&gt;/100&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&apos;;if(v.length===0){html+=&apos;&lt;div style=&quot;text-align:center;color:#27ae60;padding:20px&quot;&gt;&lt;div style=&quot;font-size:40px&quot;&gt;&#10003;&lt;/div&gt;&lt;strong&gt;Geen problemen gevonden!&lt;/strong&gt;&lt;/div&gt;&apos;;}else{html+=&apos;&lt;div style=&quot;font-weight:700;margin-bottom:12px;color:#154273&quot;&gt;&apos;+v.length+&apos; problemen gevonden&lt;/div&gt;&apos;;v.forEach(function(violation){var rem=REMEDIATIONS[violation.id]||{};var imp=IMPACT[violation.impact]||{nl:violation.impact,color:&quot;#666&quot;,bg:&quot;#f5f5f5&quot;};html+=&apos;&lt;div style=&quot;background:&apos;+imp.bg+&apos;;border-left:4px solid &apos;+imp.color+&apos;;border-radius:6px;padding:12px;margin-bottom:10px&quot;&gt;&apos;;html+=&apos;&lt;div style=&quot;display:flex;gap:8px;align-items:center;margin-bottom:6px;flex-wrap:wrap&quot;&gt;&apos;;html+=&apos;&lt;span style=&quot;background:&apos;+imp.color+&apos;;color:white;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700&quot;&gt;&apos;+imp.nl+&apos;&lt;/span&gt;&apos;;if(rem.wcag)html+=&apos;&lt;span style=&quot;background:#dde7f7;color:#154273;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700&quot;&gt;WCAG &apos;+rem.wcag+&apos;&lt;/span&gt;&apos;;html+=&apos;&lt;span style=&quot;font-weight:700;font-size:13px;color:#1a1a2e&quot;&gt;&apos;+esc(rem.title||violation.help)+&apos;&lt;/span&gt;&lt;/div&gt;&apos;;html+=&apos;&lt;div style=&quot;font-size:12px;color:#444;margin-bottom:6px&quot;&gt;&apos;+esc(violation.nodes.length)+&apos; voorkomens op deze pagina&lt;/div&gt;&apos;;if(rem.fix)html+=&apos;&lt;div style=&quot;background:rgba(255,255,255,0.7);border-radius:4px;padding:8px;font-size:12px;color:#155724&quot;&gt;&lt;strong&gt;Oplossing:&lt;/strong&gt; &apos;+esc(rem.fix)+&apos;&lt;/div&gt;&apos;;if(violation.nodes[0])html+=&apos;&lt;details style=&quot;margin-top:6px&quot;&gt;&lt;summary style=&quot;cursor:pointer;font-size:11px;color:#666&quot;&gt;Toon HTML-voorbeeld&lt;/summary&gt;&lt;pre style=&quot;font-size:11px;background:#fff;padding:6px;border-radius:4px;overflow-x:auto;margin-top:4px;white-space:pre-wrap;word-break:break-all;color:#c0392b&quot;&gt;&apos;+esc(violation.nodes[0].html.substring(0,300))+&apos;&lt;/pre&gt;&lt;/details&gt;&apos;;html+=&apos;&lt;/div&gt;&apos;;});}html+=&apos;&lt;div style=&quot;background:#fff3cd;border-radius:6px;padding:12px;margin-top:16px;font-size:12px;color:#856404&quot;&gt;&lt;strong&gt;Let op:&lt;/strong&gt; Automatische tools vinden ~30-40% van alle problemen. Controleer ook handmatig: toetsenbordnavigatie, schermlezer en kleurcontrast.&lt;/div&gt;&apos;;body.innerHTML=html;}var script=document.createElement(&quot;script&quot;);script.src=&quot;https://unpkg.com/axe-core@4/axe.min.js&quot;;script.onload=function(){axe.run(document,{runOnly:{type:&quot;tag&quot;,values:[&quot;wcag2a&quot;,&quot;wcag2aa&quot;,&quot;wcag21a&quot;,&quot;wcag21aa&quot;]}},function(err,results){if(err){body.innerHTML=&apos;&lt;div style=&quot;color:red;padding:20px&quot;&gt;Scan mislukt: &apos;+esc(err.message)+&apos;&lt;/div&gt;&apos;;return;}render(results);});};script.onerror=function(){body.innerHTML=&apos;&lt;div style=&quot;padding:20px;color:#c0392b&quot;&gt;&lt;strong&gt;Kan scanner niet laden.&lt;/strong&gt;&lt;br&gt;&lt;br&gt;Controleer je internetverbinding. De scanner heeft &amp;eacute;&amp;eacute;n extern bestand nodig (axe-core via unpkg.com).&lt;/div&gt;&apos;;};document.head.appendChild(script);})();">♿ Scan deze pagina</a>
-        </div>
-
-        <div class="tip">
-          <strong>Zie je de favorietenbalk niet?</strong> Druk op <strong>Ctrl + Shift + B</strong> in Edge om hem zichtbaar te maken.
-        </div>
-      </div>
-    </div>
-
-    <div class="step">
-      <div class="step-number">2</div>
-      <div class="step-content">
-        <h2>Ga naar de website die je wilt scannen</h2>
-        <p>Typ het adres in de adresbalk van Edge en open de website, net als normaal.</p>
-      </div>
-    </div>
-
-    <div class="step">
-      <div class="step-number">3</div>
-      <div class="step-content">
-        <h2>Klik op "♿ Scan deze pagina" in je favorietenbalk</h2>
-        <p>Er verschijnt een paneel aan de rechterkant met alle gevonden problemen, inclusief uitleg en oplossingen. Klik nogmaals om het paneel te sluiten.</p>
-      </div>
-    </div>
-
+<div class="search-box">
+  <div class="search-row">
+    <input type="url" id="url-invoer" placeholder="https://www.rijksoverheid.nl" aria-label="Website-adres">
+    <button id="scan-knop" onclick="startScan()">Scannen</button>
   </div>
-
-  <hr class="divider">
-
-  <p style="font-size:0.8rem;color:#888;text-align:center;line-height:1.6">
-    Controleert op <strong>WCAG 2.1 niveau AA</strong> – vereist door het
-    <em>Besluit digitale toegankelijkheid overheid</em> en EN 301 549.<br>
-    Automatische scan vindt ~30–40% van alle problemen. Handmatige controle blijft nodig.
-  </p>
+  <p class="hint">Vul het adres in van de website die je wilt controleren en klik op Scannen.</p>
 </div>
+
+<div id="status" role="status" aria-live="polite"></div>
+<div id="fout" class="fout-melding" style="display:none"></div>
+<div id="rapport"></div>
+
+<script>
+"use strict";
+
+/* ── CORS-proxies (zelfde aanpak als collega's tool) ── */
+const PROXIES = [
+  url => "https://api.cors.lol/?url=" + encodeURIComponent(url),
+  url => "https://api.allorigins.win/raw?url=" + encodeURIComponent(url),
+  async url => {
+    const r = await fetch("https://api.allorigins.win/get?url=" + encodeURIComponent(url));
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const j = await r.json();
+    if (!j.contents) throw new Error("leeg");
+    return j.contents; // speciale behandeling: geeft al text terug
+  },
+  url => "https://corsproxy.io/?" + encodeURIComponent(url),
+];
+
+async function haalPagina(url) {
+  let laarsteFout = null;
+  for (const proxy of PROXIES) {
+    try {
+      const proxyUrl = proxy(url);
+      // Derde proxy geeft al tekst terug via een speciale flow
+      if (typeof proxyUrl !== "string") {
+        return await proxyUrl; // het is al een Promise<string>
+      }
+      const r = await fetch(proxyUrl);
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return await r.text();
+    } catch (e) {
+      laarsteFout = e;
+    }
+  }
+  throw laarsteFout || new Error("Alle proxies mislukt");
+}
+
+/* ── Toegankelijkheidschecks ── */
+function scanHtml(html, baseUrl) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, "text/html");
+  const problemen = [];
+
+  function toevoegen(id, impact, wcag, level, titel, beschrijving, oplossing, nodes) {
+    problemen.push({ id, impact, wcag, level, titel, beschrijving, oplossing, nodes: nodes || [] });
+  }
+
+  // 1. Paginatitel (WCAG 2.4.2)
+  const titel = doc.querySelector("title");
+  if (!titel || !titel.textContent.trim()) {
+    toevoegen("document-title", "ernstig", "2.4.2", "A",
+      "Paginatitel ontbreekt of is leeg",
+      "Elke pagina moet een unieke, beschrijvende titel hebben.",
+      "Voeg een <title> toe in de <head>: <title>Paginanaam – Sitenaam</title>", []);
+  }
+
+  // 2. Paginataal (WCAG 3.1.1)
+  const htmlEl = doc.querySelector("html");
+  if (!htmlEl || !htmlEl.getAttribute("lang")) {
+    toevoegen("html-has-lang", "ernstig", "3.1.1", "A",
+      "Paginataal niet ingesteld",
+      "Screenreaders kunnen de verkeerde taal uitspreken als lang ontbreekt.",
+      'Voeg lang toe aan het html-element: <html lang="nl">', []);
+  }
+
+  // 3. Afbeeldingen zonder alt (WCAG 1.1.1)
+  const afbeeldingen = [...doc.querySelectorAll("img")];
+  const zonderAlt = afbeeldingen.filter(img => !img.hasAttribute("alt"));
+  if (zonderAlt.length) {
+    toevoegen("image-alt", "kritiek", "1.1.1", "A",
+      "Afbeeldingen zonder alternatieve tekst",
+      `${zonderAlt.length} afbeelding(en) mist het alt-attribuut.`,
+      'Voeg alt toe: <img alt="beschrijving">. Decoratief: <img alt="">',
+      zonderAlt.slice(0, 3).map(el => buitenste(el)));
+  }
+
+  // 4. Formuliervelden zonder label (WCAG 1.3.1 / 4.1.2)
+  const invoervelden = [...doc.querySelectorAll("input:not([type=hidden]):not([type=submit]):not([type=button]):not([type=reset]):not([type=image]), select, textarea")];
+  const zonderLabel = invoervelden.filter(el => {
+    const id = el.getAttribute("id");
+    const heeftLabel = id && doc.querySelector(`label[for="${id}"]`);
+    const heeftAria = el.getAttribute("aria-label") || el.getAttribute("aria-labelledby");
+    const heeftTitle = el.getAttribute("title");
+    return !heeftLabel && !heeftAria && !heeftTitle;
+  });
+  if (zonderLabel.length) {
+    toevoegen("label", "kritiek", "1.3.1", "A",
+      "Formuliervelden zonder label",
+      `${zonderLabel.length} invoerveld(en) is niet gekoppeld aan een label.`,
+      "Gebruik: <label for=\"veld\">Naam</label><input id=\"veld\">. Of voeg aria-label toe.",
+      zonderLabel.slice(0, 3).map(el => buitenste(el)));
+  }
+
+  // 5. Knoppen zonder naam (WCAG 4.1.2)
+  const knoppen = [...doc.querySelectorAll("button, [role=button], input[type=submit], input[type=button], input[type=reset]")];
+  const knopdZonderNaam = knoppen.filter(el => {
+    const tekst = el.textContent?.trim() || el.getAttribute("value")?.trim() || el.getAttribute("aria-label") || el.getAttribute("title") || "";
+    return !tekst;
+  });
+  if (knopdZonderNaam.length) {
+    toevoegen("button-name", "kritiek", "4.1.2", "A",
+      "Knoppen zonder toegankelijke naam",
+      `${knopdZonderNaam.length} knop(pen) heeft geen zichtbare of verborgen naam.`,
+      "Voeg tekst toe aan de knop of gebruik aria-label=\"Omschrijving\".",
+      knopdZonderNaam.slice(0, 3).map(el => buitenste(el)));
+  }
+
+  // 6. Links zonder tekst (WCAG 2.4.4)
+  const links = [...doc.querySelectorAll("a[href]")];
+  const linkZonderTekst = links.filter(el => {
+    const tekst = el.textContent?.trim() || el.getAttribute("aria-label") || el.getAttribute("title") || "";
+    const heeftAfb = el.querySelector("img[alt]");
+    return !tekst && !heeftAfb;
+  });
+  if (linkZonderTekst.length) {
+    toevoegen("link-name", "ernstig", "2.4.4", "A",
+      "Links zonder beschrijvende tekst",
+      `${linkZonderTekst.length} link(s) heeft geen leesbare tekst.`,
+      "Voeg beschrijvende linktekst toe of gebruik aria-label=\"Ga naar pagina\".",
+      linkZonderTekst.slice(0, 3).map(el => buitenste(el)));
+  }
+
+  // 7. Koppenstructuur (WCAG 1.3.1)
+  const koppen = [...doc.querySelectorAll("h1,h2,h3,h4,h5,h6")].map(h => parseInt(h.tagName[1]));
+  let kopFout = false;
+  for (let i = 1; i < koppen.length; i++) {
+    if (koppen[i] - koppen[i - 1] > 1) { kopFout = true; break; }
+  }
+  if (kopFout) {
+    toevoegen("heading-order", "matig", "1.3.1", "A",
+      "Koppenstructuur slaat niveaus over",
+      "De koppen gaan niet in logische volgorde (bijv. van H2 direct naar H4).",
+      "Gebruik koppen in volgorde: één H1, daarna H2, H3 enz. Sla geen niveau over.", []);
+  }
+
+  // 8. Meerdere H1's
+  const h1s = doc.querySelectorAll("h1");
+  if (h1s.length > 1) {
+    toevoegen("meerdere-h1", "matig", "1.3.1", "A",
+      "Meerdere H1-koppen op één pagina",
+      `Er zijn ${h1s.length} H1-koppen gevonden. Een pagina hoort er maar één te hebben.`,
+      "Gebruik slechts één <h1> als paginatitel. Andere hoofdkoppen worden <h2>.", []);
+  }
+
+  // 9. Geen H1
+  if (h1s.length === 0) {
+    toevoegen("geen-h1", "matig", "1.3.1", "A",
+      "Geen H1-kop aanwezig",
+      "De pagina heeft geen H1-kop. Dit maakt de structuur onduidelijk.",
+      "Voeg één <h1> toe als hoofdkop van de pagina.", []);
+  }
+
+  // 10. Iframes zonder title (WCAG 2.4.1)
+  const iframes = [...doc.querySelectorAll("iframe")];
+  const iframeZonderTitle = iframes.filter(el => !el.getAttribute("title"));
+  if (iframeZonderTitle.length) {
+    toevoegen("frame-title", "ernstig", "2.4.1", "A",
+      "Iframes zonder beschrijvende titel",
+      `${iframeZonderTitle.length} iframe(s) mist een title-attribuut.`,
+      "Voeg title toe: <iframe title=\"Kaart van gemeente Amsterdam\">",
+      iframeZonderTitle.slice(0, 3).map(el => buitenste(el)));
+  }
+
+  // 11. Dubbele ID's (WCAG 4.1.1)
+  const ids = [...doc.querySelectorAll("[id]")].map(el => el.id);
+  const dubbel = ids.filter((id, i) => ids.indexOf(id) !== i);
+  const uniekDubbel = [...new Set(dubbel)];
+  if (uniekDubbel.length) {
+    toevoegen("duplicate-id", "ernstig", "4.1.1", "A",
+      "Dubbele ID-attributen",
+      `De ID's '${uniekDubbel.slice(0, 3).join("', '")}' komen meerdere keren voor.`,
+      "Elk id-attribuut moet uniek zijn op de pagina. Pas dubbele id-waarden aan.", []);
+  }
+
+  // 12. Skip-link (WCAG 2.4.1)
+  const eersteLink = doc.querySelector("a");
+  const heeftSkip = eersteLink && eersteLink.getAttribute("href")?.startsWith("#") &&
+    /sla|skip|inhoud|content|main|ga naar/i.test(eersteLink.textContent);
+  if (!heeftSkip) {
+    toevoegen("bypass", "matig", "2.4.1", "A",
+      "\"Sla naar hoofdinhoud\"-link ontbreekt",
+      "Toetsenbordgebruikers moeten de navigatie kunnen overslaan.",
+      'Voeg als eerste link toe: <a href="#main" class="skip-link">Sla naar hoofdinhoud</a>', []);
+  }
+
+  // 13. Main landmark (WCAG 1.3.6)
+  const heeftMain = doc.querySelector("main, [role=main]");
+  if (!heeftMain) {
+    toevoegen("landmark-one-main", "matig", "1.3.6", "AA",
+      "Geen <main>-landmark aanwezig",
+      "Screenreadergebruikers kunnen niet direct naar de hoofdinhoud springen.",
+      "Wikkel de hoofdinhoud in <main id=\"main\">...</main>", []);
+  }
+
+  // 14. Automatische doorverwijzing / verversing (WCAG 2.2.1)
+  const metaRefresh = doc.querySelector("meta[http-equiv='refresh'], meta[http-equiv='Refresh']");
+  if (metaRefresh) {
+    toevoegen("meta-refresh", "ernstig", "2.2.1", "A",
+      "Automatische paginaverversing of doorverwijzing",
+      "De pagina ververs of stuurt de gebruiker automatisch door via meta-refresh.",
+      "Verwijder de meta-refresh tag. Gebruik server-side doorverwijzing (HTTP 301/302) als omleiding nodig is.",
+      [metaRefresh.outerHTML.substring(0, 200)]);
+  }
+
+  // 15. Links naar nieuw tabblad zonder waarschuwing (WCAG 3.2.2)
+  const nieuwTabblad = [...doc.querySelectorAll("a[target='_blank']")].filter(el => {
+    const tekst = (el.textContent + (el.getAttribute("aria-label") || "")).toLowerCase();
+    return !/nieuw|new tab|venster|window/.test(tekst);
+  });
+  if (nieuwTabblad.length) {
+    toevoegen("link-new-tab", "klein", "3.2.2", "A",
+      "Links openen in nieuw tabblad zonder waarschuwing",
+      `${nieuwTabblad.length} link(s) opent in een nieuw tabblad zonder gebruikers hierover te informeren.`,
+      "Voeg \"(opent in nieuw tabblad)\" toe aan de linktekst of gebruik een icoon met aria-label.",
+      nieuwTabblad.slice(0, 3).map(el => buitenste(el)));
+  }
+
+  // 16. Afbeeldingsknoppen zonder alt (WCAG 1.1.1)
+  const afbKnoppen = [...doc.querySelectorAll("input[type=image]")].filter(el => !el.getAttribute("alt"));
+  if (afbKnoppen.length) {
+    toevoegen("input-image-alt", "kritiek", "1.1.1", "A",
+      "Afbeeldingsknoppen zonder alternatieve tekst",
+      `${afbKnoppen.length} afbeeldingsknop(pen) mist een alt-attribuut.`,
+      "Voeg alt toe: <input type=\"image\" alt=\"Zoeken\">",
+      afbKnoppen.slice(0, 3).map(el => buitenste(el)));
+  }
+
+  // 17. Video's zonder track (WCAG 1.2.2)
+  const videos = [...doc.querySelectorAll("video")].filter(el => !el.querySelector("track[kind=captions], track[kind=subtitles]"));
+  if (videos.length) {
+    toevoegen("video-caption", "ernstig", "1.2.2", "A",
+      "Video's zonder ondertitels",
+      `${videos.length} video('s) heeft geen ondertitels.`,
+      "Voeg toe: <track kind=\"captions\" src=\"ondertitels.vtt\" srclang=\"nl\" label=\"Nederlands\">",
+      videos.slice(0, 3).map(el => buitenste(el)));
+  }
+
+  // 18. Tabellen zonder headers (WCAG 1.3.1)
+  const tabellen = [...doc.querySelectorAll("table")];
+  const tabelZonderHeader = tabellen.filter(t => !t.querySelector("th, thead"));
+  if (tabelZonderHeader.length) {
+    toevoegen("table-headers", "matig", "1.3.1", "A",
+      "Tabellen zonder kolomkoppen",
+      `${tabelZonderHeader.length} tabel(len) mist <th>-kolomkoppen.`,
+      "Gebruik <th scope=\"col\"> voor kolomkoppen en <th scope=\"row\"> voor rijkoppen.",
+      tabelZonderHeader.slice(0, 3).map(el => buitenste(el).substring(0, 150)));
+  }
+
+  // 19. Formulieren zonder autocomplete op persoonsgegevens (WCAG 1.3.5)
+  const persoonsvelden = [...doc.querySelectorAll("input[type=text], input[type=email], input[type=tel], input:not([type])")];
+  const zonderAutocomplete = persoonsvelden.filter(el => {
+    if (el.getAttribute("autocomplete")) return false;
+    const label = el.id ? doc.querySelector(`label[for="${el.id}"]`) : null;
+    const hint = (label?.textContent || el.getAttribute("placeholder") || el.getAttribute("name") || "").toLowerCase();
+    return /naam|name|email|e-mail|telefoon|phone|postcode|adres/.test(hint);
+  });
+  if (zonderAutocomplete.length) {
+    toevoegen("autocomplete-missing", "matig", "1.3.5", "AA",
+      "Autocomplete ontbreekt op persoonsgegevensvelden",
+      `${zonderAutocomplete.length} veld(en) voor persoonsgegevens mist het autocomplete-attribuut.`,
+      "Voeg autocomplete toe: autocomplete=\"name\", \"email\", \"tel\", \"postal-code\" etc.",
+      zonderAutocomplete.slice(0, 3).map(el => buitenste(el)));
+  }
+
+  // Sorteer op ernst
+  const volgorde = { kritiek: 0, ernstig: 1, matig: 2, klein: 3 };
+  problemen.sort((a, b) => (volgorde[a.impact] ?? 9) - (volgorde[b.impact] ?? 9));
+
+  return problemen;
+}
+
+function buitenste(el) {
+  if (typeof el === "string") return el;
+  return el.outerHTML?.substring(0, 250) || "";
+}
+
+/* ── Score berekenen ── */
+function berekenScore(problemen) {
+  const gewichten = { kritiek: 20, ernstig: 10, matig: 5, klein: 2 };
+  const aftrek = problemen.reduce((s, p) => s + (gewichten[p.impact] || 0), 0);
+  return Math.max(0, 100 - aftrek);
+}
+
+/* ── Kleuren en labels ── */
+const IMPACT_STIJL = {
+  kritiek: { kleur: "#c0392b", achtergrond: "#fdf0ef", rand: "#e74c3c" },
+  ernstig: { kleur: "#d35400", achtergrond: "#fef4ec", rand: "#e67e22" },
+  matig:   { kleur: "#2471a3", achtergrond: "#eaf2fb", rand: "#3498db" },
+  klein:   { kleur: "#1e8449", achtergrond: "#eafaf1", rand: "#2ecc71" },
+};
+
+function scoreKleur(score) {
+  return score >= 80 ? "#27ae60" : score >= 60 ? "#e67e22" : "#e74c3c";
+}
+
+function scoreLabel(score) {
+  if (score >= 90) return "Uitstekend";
+  if (score >= 80) return "Goed";
+  if (score >= 60) return "Matig";
+  if (score >= 40) return "Slecht";
+  return "Onvoldoende";
+}
+
+/* ── Rapport renderen ── */
+function toonRapport(url, problemen, paginaInfo) {
+  const score = berekenScore(problemen);
+  const sk = scoreKleur(score);
+
+  const tellers = ["kritiek","ernstig","matig","klein"].map(imp => {
+    const n = problemen.filter(p => p.impact === imp).length;
+    return `<div class="teller ${imp}"><div class="n">${n}</div><div class="l">${imp.charAt(0).toUpperCase()+imp.slice(1)}</div></div>`;
+  }).join("");
+
+  let kaarten = "";
+  if (problemen.length === 0) {
+    kaarten = `<div class="geen-fouten"><span class="icon">✅</span>
+      <strong>Geen problemen gevonden!</strong>
+      <p style="margin-top:0.5rem;color:#666">De gescande pagina voldoet aan alle gecontroleerde WCAG 2.1 AA criteria.</p></div>`;
+  } else {
+    kaarten = problemen.map((p, i) => {
+      const s = IMPACT_STIJL[p.impact] || { kleur: "#666", achtergrond: "#f5f5f5", rand: "#999" };
+      const imp = p.impact.charAt(0).toUpperCase() + p.impact.slice(1);
+      const lvlClass = p.level === "AA" ? "badge-level-aa" : "badge-level-a";
+      const nodeHtml = p.nodes.length ? `
+        <div class="sectie">
+          <h4>Gevonden in de code</h4>
+          ${p.nodes.map(n => `<div class="code-voorbeeld"><pre>${esc(n)}</pre></div>`).join("")}
+        </div>` : "";
+      return `
+      <div class="kaart" id="k${i}">
+        <div class="kaart-kop" style="background:${s.achtergrond};border-color:${s.rand}"
+             onclick="toggleKaart(${i})" role="button" tabindex="0"
+             onkeydown="if(event.key==='Enter'||event.key===' ')toggleKaart(${i})">
+          <div class="kaart-kop-tekst">
+            <h3>${esc(p.titel)}</h3>
+            <div class="meta">
+              <span class="badge badge-ernst" style="background:${s.rand}">${imp}</span>
+              ${p.wcag ? `<span class="badge badge-wcag">WCAG ${p.wcag}</span>` : ""}
+              <span class="badge ${lvlClass}">Niveau ${p.level}</span>
+            </div>
+          </div>
+          <span class="pijl">▼</span>
+        </div>
+        <div class="kaart-body">
+          <div class="sectie">
+            <h4>Wat is het probleem?</h4>
+            <p>${esc(p.beschrijving)}</p>
+          </div>
+          <div class="sectie oplossing">
+            <h4>💡 Hoe op te lossen</h4>
+            <p>${esc(p.oplossing)}</p>
+          </div>
+          ${nodeHtml}
+        </div>
+      </div>`;
+    }).join("");
+  }
+
+  document.getElementById("rapport").innerHTML = `
+    <div class="score-kaart">
+      <div class="score-cirkel" style="border-color:${sk};color:${sk}">
+        <span class="getal">${score}</span>
+        <span class="van">/100</span>
+      </div>
+      <div class="score-info">
+        <h2>${scoreLabel(score)} – ${problemen.length} probleem${problemen.length === 1 ? "" : "en"} gevonden</h2>
+        <p>Gescand: <a href="${esc(url)}" target="_blank">${esc(url)}</a></p>
+        ${paginaInfo.titel ? `<p>Paginatitel: <em>${esc(paginaInfo.titel)}</em></p>` : ""}
+        <div class="tellers">${tellers}</div>
+      </div>
+    </div>
+
+    <div class="sectie-titel">Gevonden problemen</div>
+    ${kaarten}
+
+    <div class="sectie-titel" style="margin-top:2rem">Handmatig controleren</div>
+    <div class="handmatig">
+      <p>Automatische tools vinden ~30–40% van alle WCAG-problemen. Controleer ook handmatig:</p>
+      <ul>
+        <li>Navigeer de hele pagina met alleen het toetsenbord (Tab, Enter, Escape, pijltjestoetsen)</li>
+        <li>Test met een schermlezer (NVDA voor Windows, gratis te downloaden)</li>
+        <li>Zoom in tot 200% – alle tekst moet leesbaar blijven zonder horizontaal scrollen</li>
+        <li>Controleer kleurcontrast met de <a href="https://webaim.org/resources/contrastchecker/" target="_blank">WebAIM Contrast Checker</a></li>
+        <li>Test formulieren inclusief foutmeldingen en validatie</li>
+        <li>Controleer PDF-bestanden apart op toegankelijkheid</li>
+        <li>Test bewegende of knipperende content (animaties, sliders)</li>
+      </ul>
+    </div>
+  `;
+  document.getElementById("rapport").style.display = "block";
+}
+
+function toggleKaart(i) {
+  document.getElementById("k" + i).classList.toggle("open");
+}
+
+function esc(s) {
+  return String(s || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function toonStatus(tekst) {
+  const el = document.getElementById("status");
+  el.style.display = "block";
+  el.innerHTML = `<span class="spinner"></span>${tekst}`;
+}
+
+function verbergStatus() {
+  document.getElementById("status").style.display = "none";
+}
+
+function toonFout(tekst) {
+  const el = document.getElementById("fout");
+  el.style.display = "block";
+  el.textContent = tekst;
+}
+
+function verbergFout() {
+  document.getElementById("fout").style.display = "none";
+}
+
+async function startScan() {
+  const invoer = document.getElementById("url-invoer");
+  const knop = document.getElementById("scan-knop");
+  let url = invoer.value.trim();
+
+  if (!url) { invoer.focus(); return; }
+  if (!url.startsWith("http")) url = "https://" + url;
+
+  verbergFout();
+  document.getElementById("rapport").style.display = "none";
+  knop.disabled = true;
+  toonStatus("Pagina ophalen via proxy...");
+
+  try {
+    const html = await haalPagina(url);
+    toonStatus("Toegankelijkheid analyseren...");
+
+    // Haal paginatitel op uit de opgehaalde HTML
+    const titelMatch = html.match(/<title[^>]*>([^<]*)<\/title>/i);
+    const paginaInfo = { titel: titelMatch ? titelMatch[1].trim() : "" };
+
+    const problemen = scanHtml(html, url);
+
+    verbergStatus();
+    toonRapport(url, problemen, paginaInfo);
+
+    // Open kritieke en ernstige kaarten automatisch
+    document.querySelectorAll(".kaart").forEach((k, i) => {
+      const badge = k.querySelector(".badge-ernst");
+      if (badge && (badge.textContent === "Kritiek" || badge.textContent === "Ernstig")) {
+        k.classList.add("open");
+      }
+    });
+
+  } catch (e) {
+    verbergStatus();
+    toonFout("Kon de pagina niet ophalen. Controleer het adres en je internetverbinding. Fout: " + e.message);
+  } finally {
+    knop.disabled = false;
+  }
+}
+
+// Scannen met Enter-toets
+document.getElementById("url-invoer").addEventListener("keydown", e => {
+  if (e.key === "Enter") startScan();
+});
+</script>
 </body>
 </html>
