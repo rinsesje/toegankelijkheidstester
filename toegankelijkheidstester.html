@@ -66,6 +66,8 @@ a{color:var(--blauw2)}
 .pill.matig{background:#eaf2fb;color:#2471a3}
 .pill.klein{background:#eafaf1;color:#1e8449}
 .pill.paginas{background:#eef4ff;color:var(--blauw)}
+.pill.klikbaar{cursor:pointer;border:2px solid transparent;transition:box-shadow .15s,border-color .15s}
+.pill.klikbaar:hover{box-shadow:0 2px 8px rgba(0,0,0,.15);border-color:currentColor}
 
 /* ─ Categorie-kaarten ─ */
 .cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-bottom:1.5rem}
@@ -1085,7 +1087,8 @@ function toonDashboard(resultaten, info){
 
   const tellers=["kritiek","ernstig","matig","klein"].map(imp=>{
     const n=CHECKS.filter(c=>c.impact===imp).filter(c=>resultaten[c.id]&&!resultaten[c.id].ok).length;
-    return `<div class="pill ${imp}"><span class="n">${n}</span>${imp.charAt(0).toUpperCase()+imp.slice(1)}</div>`;
+    const klikAttr=n>0?`onclick="toonImpactDetail('${imp}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')toonImpactDetail('${imp}')" title="Klik om details te zien" class="pill ${imp} klikbaar"`:`class="pill ${imp}"`;
+    return `<div ${klikAttr}><span class="n">${n}</span>${imp.charAt(0).toUpperCase()+imp.slice(1)}</div>`;
   }).join("");
   const paginaPill=paginaAantal>1?`<div class="pill paginas"><span class="n">${paginaAantal}</span>Pagina's</div>`:"";
 
@@ -1122,6 +1125,55 @@ function toonDashboard(resultaten, info){
     </div>`;
   document.getElementById("dashboard").style.display="block";
   document.getElementById("details").innerHTML="";
+}
+
+function toonImpactDetail(impact){
+  const impLabels={kritiek:"🔴 Kritieke problemen",ernstig:"🟠 Ernstige problemen",matig:"🔵 Matige problemen",klein:"🟢 Kleine meldingen"};
+  const resultaten=huidigeResultaten;
+  const probleemChecks=CHECKS.filter(c=>c.impact===impact&&resultaten[c.id]&&!resultaten[c.id].ok);
+
+  const items=probleemChecks.map((ch,i)=>{
+    const r=resultaten[ch.id];
+    let icoon; if(impact==="kritiek"||impact==="ernstig") icoon="❌"; else if(impact==="matig") icoon="⚠️"; else icoon="ℹ️";
+    const impBadge=`<span class="badge badge-${impact}">${impact}</span>`;
+    const wcagBadge=ch.wcag?`<span class="badge badge-wcag">WCAG ${ch.wcag}</span>`:"";
+    const levelBadge=ch.level?`<span class="badge badge-${ch.level.toLowerCase()}">${ch.level}</span>`:"";
+    const catNaam=CATEGORIEEN.find(c=>c.id===ch.cat);
+    const catBadge=catNaam?`<span class="badge" style="background:#f0f4f8;color:#555">${catNaam.icoon} ${catNaam.naam}</span>`:"";
+    const nodeHtml=r.nodes?.length?`
+      <div class="veld">
+        <h4>${r.paginas?"Gevonden op pagina's":"Gevonden in de code"} (${r.tel} ${r.paginas?"pagina(s)":"voorkomens"})</h4>
+        ${r.nodes.slice(0,4).map(n=>`<div class="code-blok"><pre>${esc(n)}</pre></div>`).join("")}
+      </div>`:"";
+    return `
+    <div class="check-item open" id="imp_${impact}_${i}">
+      <div class="check-kop" onclick="this.closest('.check-item').classList.toggle('open')"
+           role="button" tabindex="0"
+           onkeydown="if(event.key==='Enter'||event.key===' ')this.closest('.check-item').classList.toggle('open')">
+        <span class="check-status">${icoon}</span>
+        <div class="check-info">
+          <h3>${esc(ch.titel)}</h3>
+          <div class="check-meta">${impBadge}${wcagBadge}${levelBadge}${catBadge}</div>
+        </div>
+        <span class="check-pijl">▼</span>
+      </div>
+      <div class="check-body">
+        <div class="veld"><h4>Wat wordt gecontroleerd?</h4><p>${esc(ch.beschr)}</p></div>
+        <div class="veld oplossing-vak"><h4>💡 Hoe op te lossen</h4><p>${esc(ch.opl)}</p></div>
+        ${nodeHtml}
+      </div>
+    </div>`;
+  }).join("");
+
+  const leegTekst=`<p style="padding:1rem;color:var(--grijs)">Geen problemen gevonden voor dit ernstniveau. 🎉</p>`;
+
+  document.getElementById("details").innerHTML=`
+    <div style="max-width:960px;margin:0 auto 1.5rem;padding:0 1rem">
+      <p class="terug" onclick="document.getElementById('details').innerHTML='';window.scrollTo(0,0)" style="margin-bottom:.75rem">← Terug naar overzicht</p>
+      <h2 style="font-size:1.2rem;color:var(--blauw);margin-bottom:1.25rem">${impLabels[impact]} (${probleemChecks.length})</h2>
+      <div class="check-lijst">${probleemChecks.length?items:leegTekst}</div>
+    </div>`;
+  document.getElementById("details").scrollIntoView({behavior:"smooth",block:"start"});
 }
 
 function toonDetail(catId){
