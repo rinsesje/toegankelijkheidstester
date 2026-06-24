@@ -1,10 +1,35 @@
 'use strict';
 
 const { chromium } = require('playwright');
-const { readFileSync } = require('fs');
+const { readFileSync, existsSync } = require('fs');
 const path = require('path');
 
-const CHROMIUM_PATH = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
+// Zoek automatisch een bruikbare Chromium/Chrome installatie
+function findChromiumPath() {
+  // 1. Omgevingsvariabele (voor CI of aangepaste installaties)
+  if (process.env.CHROMIUM_PATH && existsSync(process.env.CHROMIUM_PATH)) {
+    return process.env.CHROMIUM_PATH;
+  }
+  // 2. Bekende paden (Linux, macOS, Windows)
+  const candidates = [
+    // Linux systeem
+    '/usr/bin/chromium-browser',
+    '/usr/bin/chromium',
+    '/usr/bin/google-chrome',
+    '/usr/bin/google-chrome-stable',
+    '/snap/bin/chromium',
+    // macOS
+    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    '/Applications/Chromium.app/Contents/MacOS/Chromium',
+    // Cloud-omgeving (fallback)
+    '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  ];
+  for (const p of candidates) {
+    if (existsSync(p)) return p;
+  }
+  // 3. Geen pad gevonden – Playwright gebruikt zijn eigen gedownloade browser
+  return null;
+}
 
 // WCAG 2.1 AA criteria verplicht voor Nederlandse overheid (EN 301 549 / Besluit digitale toegankelijkheid)
 const WCAG_REMEDIATION = {
@@ -297,10 +322,13 @@ async function runCustomChecks(page) {
 }
 
 async function scanUrl(url, options = {}) {
-  const browser = await chromium.launch({
-    executablePath: CHROMIUM_PATH,
+  const executablePath = findChromiumPath();
+  const launchOptions = {
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
-  });
+  };
+  if (executablePath) launchOptions.executablePath = executablePath;
+
+  const browser = await chromium.launch(launchOptions);
 
   try {
     const context = await browser.newContext({

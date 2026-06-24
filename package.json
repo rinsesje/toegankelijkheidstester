@@ -7,6 +7,7 @@
     "toegankelijkheidstester": "src/cli.js"
   },
   "scripts": {
+    "install-browsers": "playwright install chromium",
     "start": "node src/cli.js",
     "test": "node src/cli.js --url https://example.com"
   },
