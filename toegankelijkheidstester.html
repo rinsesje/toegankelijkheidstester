@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Toegankelijkheidstester</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      background: #f0f4f8;
+      color: #1a1a2e;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    .card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+      padding: 2.5rem;
+      max-width: 600px;
+      width: 100%;
+    }
+    .logo { font-size: 3rem; text-align: center; margin-bottom: 1rem; }
+    h1 { text-align: center; font-size: 1.6rem; color: #154273; margin-bottom: 0.5rem; }
+    .subtitle { text-align: center; color: #666; font-size: 0.95rem; margin-bottom: 2rem; }
+
+    .steps { counter-reset: step; display: flex; flex-direction: column; gap: 1.5rem; }
+    .step { display: flex; gap: 1rem; align-items: flex-start; }
+    .step-number {
+      counter-increment: step;
+      background: #154273;
+      color: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .step-content h2 { font-size: 1rem; margin-bottom: 0.3rem; color: #154273; }
+    .step-content p { font-size: 0.9rem; color: #555; line-height: 1.5; }
+
+    .bookmarklet-wrapper {
+      margin: 0.75rem 0;
+      padding: 1rem;
+      background: #eef4ff;
+      border: 2px dashed #7aabf0;
+      border-radius: 10px;
+      text-align: center;
+    }
+    .bookmarklet-wrapper p {
+      font-size: 0.8rem;
+      color: #555;
+      margin-bottom: 0.75rem;
+    }
+    .bookmarklet-btn {
+      display: inline-block;
+      background: linear-gradient(135deg, #154273, #1e6bb8);
+      color: white !important;
+      text-decoration: none;
+      padding: 0.7rem 1.5rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: grab;
+      box-shadow: 0 4px 12px rgba(21,66,115,0.3);
+      user-select: none;
+    }
+    .bookmarklet-btn:hover { opacity: 0.9; }
+
+    .tip {
+      background: #fff8e1;
+      border-left: 4px solid #f9a825;
+      border-radius: 4px;
+      padding: 0.75rem 1rem;
+      font-size: 0.85rem;
+      color: #555;
+      margin-top: 0.75rem;
+    }
+    .tip strong { color: #e65100; }
+
+    .divider { border: none; border-top: 1px solid #eee; margin: 2rem 0; }
+
+    .footer { text-align: center; font-size: 0.8rem; color: #999; margin-top: 2rem; }
+    .footer a { color: #154273; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">♿</div>
+  <h1>Toegankelijkheidstester</h1>
+  <p class="subtitle">Controleer websites op WCAG 2.1 AA – vereist voor de overheid</p>
+
+  <div class="steps">
+
+    <div class="step">
+      <div class="step-number">1</div>
+      <div class="step-content">
+        <h2>Eenmalig: sleep de knop naar je favorietenbalk</h2>
+        <p>Klik op de knop hieronder, houd de muisknop ingedrukt en sleep hem naar de favorietenbalk van Edge (de balk bovenin de browser).</p>
+
+        <div class="bookmarklet-wrapper">
+          <p>⬇ Sleep deze knop naar je favorietenbalk ⬇</p>
+          <a class="bookmarklet-btn" href="javascript:(function(){var REMEDIATIONS={&quot;color-contrast&quot;:{wcag:&quot;1.4.3&quot;,level:&quot;AA&quot;,title:&quot;Onvoldoende kleurcontrast&quot;,fix:&quot;Zorg dat tekst een contrastverhouding heeft van minimaal 4,5:1 ten opzichte van de achtergrond. Controleer met de WebAIM Contrast Checker en pas tekst- of achtergrondkleur aan.&quot;},&quot;image-alt&quot;:{wcag:&quot;1.1.1&quot;,level:&quot;A&quot;,title:&quot;Afbeelding zonder alternatieve tekst&quot;,fix:&quot;Voeg een beschrijvend alt-attribuut toe: &lt;img alt=\'beschrijving\'&gt;. Decoratieve afbeeldingen krijgen een leeg alt: &lt;img alt=\'\'&gt;.&quot;},&quot;label&quot;:{wcag:&quot;1.3.1&quot;,level:&quot;A&quot;,title:&quot;Formulierveld zonder label&quot;,fix:&quot;Koppel elk formulierveld aan een label via het for/id-attribuut: &lt;label for=\'veld\'&gt;Naam&lt;/label&gt;&lt;input id=\'veld\'&gt;. Placeholder is geen vervanging voor een label.&quot;},&quot;button-name&quot;:{wcag:&quot;4.1.2&quot;,level:&quot;A&quot;,title:&quot;Knop zonder toegankelijke naam&quot;,fix:&quot;Geef elke knop een beschrijvende tekst. Voor icoonknoppen: gebruik aria-label=\'Omschrijving\'.&quot;},&quot;link-name&quot;:{wcag:&quot;2.4.4&quot;,level:&quot;A&quot;,title:&quot;Link zonder beschrijvende tekst&quot;,fix:&quot;Zorg dat elke link een beschrijvende tekst heeft. Vermijd \'klik hier\' of \'lees meer\' zonder context.&quot;},&quot;document-title&quot;:{wcag:&quot;2.4.2&quot;,level:&quot;A&quot;,title:&quot;Paginatitel ontbreekt&quot;,fix:&quot;Voeg een unieke beschrijvende &lt;title&gt; toe: &lt;title&gt;Paginanaam - Sitenaam&lt;/title&gt;.&quot;},&quot;html-has-lang&quot;:{wcag:&quot;3.1.1&quot;,level:&quot;A&quot;,title:&quot;Paginataal niet ingesteld&quot;,fix:&quot;Voeg het lang-attribuut toe aan het html-element: &lt;html lang=\'nl\'&gt;.&quot;},&quot;landmark-one-main&quot;:{wcag:&quot;1.3.6&quot;,level:&quot;AA&quot;,title:&quot;Geen main-landmark aanwezig&quot;,fix:&quot;Voeg &eacute;&eacute;n &lt;main&gt;-element toe aan de hoofdinhoud van elke pagina.&quot;},&quot;heading-order&quot;:{wcag:&quot;1.3.1&quot;,level:&quot;A&quot;,title:&quot;Koppenstructuur slaat niveaus over&quot;,fix:&quot;Gebruik koppen in logische volgorde: &eacute;&eacute;n h1, daarna h2, h3 etc. Sla geen niveaus over.&quot;},&quot;frame-title&quot;:{wcag:&quot;2.4.1&quot;,level:&quot;A&quot;,title:&quot;Iframe zonder titel&quot;,fix:&quot;Voeg een beschrijvend title-attribuut toe aan elk iframe.&quot;},&quot;duplicate-id&quot;:{wcag:&quot;4.1.1&quot;,level:&quot;A&quot;,title:&quot;Dubbel id-attribuut&quot;,fix:&quot;Elk id-attribuut moet uniek zijn op de pagina. Pas dubbele id-waarden aan.&quot;},&quot;bypass&quot;:{wcag:&quot;2.4.1&quot;,level:&quot;A&quot;,title:&quot;Geen skip-link aanwezig&quot;,fix:&quot;Voeg een \'Sla naar hoofdinhoud\'-link toe als eerste element: &lt;a href=\'#main\'&gt;Sla naar inhoud&lt;/a&gt;.&quot;},&quot;scrollable-region-focusable&quot;:{wcag:&quot;2.1.1&quot;,level:&quot;A&quot;,title:&quot;Scrollbaar gebied niet toetsenbordtoegankelijk&quot;,fix:&quot;Voeg tabindex=\'0\' toe aan scrollbare gebieden zodat toetsenbordgebruikers er naartoe kunnen navigeren.&quot;},&quot;select-name&quot;:{wcag:&quot;4.1.2&quot;,level:&quot;A&quot;,title:&quot;Selectielijst zonder toegankelijke naam&quot;,fix:&quot;Koppel een &lt;label&gt; aan elke &lt;select&gt;.&quot;},&quot;video-caption&quot;:{wcag:&quot;1.2.2&quot;,level:&quot;A&quot;,title:&quot;Video zonder ondertitels&quot;,fix:&quot;Voeg ondertitels toe via &lt;track kind=\'captions\'&gt; in het WebVTT-formaat.&quot;}};var IMPACT={critical:{nl:&quot;Kritiek&quot;,color:&quot;#c0392b&quot;,bg:&quot;#fdf0ef&quot;},serious:{nl:&quot;Ernstig&quot;,color:&quot;#d35400&quot;,bg:&quot;#fef4ec&quot;},moderate:{nl:&quot;Matig&quot;,color:&quot;#2471a3&quot;,bg:&quot;#eaf2fb&quot;},minor:{nl:&quot;Klein&quot;,color:&quot;#1e8449&quot;,bg:&quot;#eafaf1&quot;}};if(document.getElementById(&quot;__a11y_panel__&quot;)){document.getElementById(&quot;__a11y_panel__&quot;).remove();return;}var panel=document.createElement(&quot;div&quot;);panel.id=&quot;__a11y_panel__&quot;;panel.style.cssText=&quot;all:initial;position:fixed;top:0;right:0;width:420px;max-width:100vw;height:100vh;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,0.18);z-index:2147483647;font-family:system-ui,sans-serif;font-size:14px;display:flex;flex-direction:column;overflow:hidden;&quot;;panel.innerHTML=&apos;&lt;div style=&quot;background:linear-gradient(135deg,#154273,#1e6bb8);color:white;padding:16px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0&quot;&gt;&lt;div&gt;&lt;div style=&quot;font-weight:700;font-size:16px&quot;&gt;&#9851; Toegankelijkheidstester&lt;/div&gt;&lt;div style=&quot;opacity:0.8;font-size:12px;margin-top:2px&quot;&gt;WCAG 2.1 AA scanner&lt;/div&gt;&lt;/div&gt;&lt;button id=&quot;__a11y_close__&quot; style=&quot;background:rgba(255,255,255,0.2);border:none;color:white;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center&quot;&gt;&amp;times;&lt;/button&gt;&lt;/div&gt;&lt;div id=&quot;__a11y_body__&quot; style=&quot;overflow-y:auto;flex:1;padding:16px&quot;&gt;&lt;div style=&quot;text-align:center;padding:40px 20px;color:#888&quot;&gt;&#128269; Bezig met scannen...&lt;/div&gt;&lt;/div&gt;&apos;;document.body.appendChild(panel);document.getElementById(&quot;__a11y_close__&quot;).onclick=function(){panel.remove();};var body=document.getElementById(&quot;__a11y_body__&quot;);function esc(s){return String(s||&quot;&quot;).replace(/&amp;/g,&quot;&amp;amp;&quot;).replace(/&lt;/g,&quot;&amp;lt;&quot;).replace(/&gt;/g,&quot;&amp;gt;&quot;);}function render(results){var v=results.violations;var score=Math.max(0,100-v.reduce(function(s,x){return s+({critical:20,serious:10,moderate:5,minor:2}[x.impact]||0);},0));var sc=score&gt;=80?&quot;#27ae60&quot;:score&gt;=60?&quot;#e67e22&quot;:&quot;#e74c3c&quot;;var html=&apos;&lt;div style=&quot;text-align:center;margin-bottom:16px&quot;&gt;&lt;div style=&quot;display:inline-flex;align-items:center;justify-content:center;flex-direction:column;width:90px;height:90px;border-radius:50%;border:6px solid &apos;+sc+&apos;;color:&apos;+sc+&apos;&quot;&gt;&lt;span style=&quot;font-size:28px;font-weight:800;line-height:1&quot;&gt;&apos;+score+&apos;&lt;/span&gt;&lt;span style=&quot;font-size:10px;font-weight:600&quot;&gt;/100&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&apos;;if(v.length===0){html+=&apos;&lt;div style=&quot;text-align:center;color:#27ae60;padding:20px&quot;&gt;&lt;div style=&quot;font-size:40px&quot;&gt;&#10003;&lt;/div&gt;&lt;strong&gt;Geen problemen gevonden!&lt;/strong&gt;&lt;/div&gt;&apos;;}else{html+=&apos;&lt;div style=&quot;font-weight:700;margin-bottom:12px;color:#154273&quot;&gt;&apos;+v.length+&apos; problemen gevonden&lt;/div&gt;&apos;;v.forEach(function(violation){var rem=REMEDIATIONS[violation.id]||{};var imp=IMPACT[violation.impact]||{nl:violation.impact,color:&quot;#666&quot;,bg:&quot;#f5f5f5&quot;};html+=&apos;&lt;div style=&quot;background:&apos;+imp.bg+&apos;;border-left:4px solid &apos;+imp.color+&apos;;border-radius:6px;padding:12px;margin-bottom:10px&quot;&gt;&apos;;html+=&apos;&lt;div style=&quot;display:flex;gap:8px;align-items:center;margin-bottom:6px;flex-wrap:wrap&quot;&gt;&apos;;html+=&apos;&lt;span style=&quot;background:&apos;+imp.color+&apos;;color:white;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700&quot;&gt;&apos;+imp.nl+&apos;&lt;/span&gt;&apos;;if(rem.wcag)html+=&apos;&lt;span style=&quot;background:#dde7f7;color:#154273;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700&quot;&gt;WCAG &apos;+rem.wcag+&apos;&lt;/span&gt;&apos;;html+=&apos;&lt;span style=&quot;font-weight:700;font-size:13px;color:#1a1a2e&quot;&gt;&apos;+esc(rem.title||violation.help)+&apos;&lt;/span&gt;&lt;/div&gt;&apos;;html+=&apos;&lt;div style=&quot;font-size:12px;color:#444;margin-bottom:6px&quot;&gt;&apos;+esc(violation.nodes.length)+&apos; voorkomens op deze pagina&lt;/div&gt;&apos;;if(rem.fix)html+=&apos;&lt;div style=&quot;background:rgba(255,255,255,0.7);border-radius:4px;padding:8px;font-size:12px;color:#155724&quot;&gt;&lt;strong&gt;Oplossing:&lt;/strong&gt; &apos;+esc(rem.fix)+&apos;&lt;/div&gt;&apos;;if(violation.nodes[0])html+=&apos;&lt;details style=&quot;margin-top:6px&quot;&gt;&lt;summary style=&quot;cursor:pointer;font-size:11px;color:#666&quot;&gt;Toon HTML-voorbeeld&lt;/summary&gt;&lt;pre style=&quot;font-size:11px;background:#fff;padding:6px;border-radius:4px;overflow-x:auto;margin-top:4px;white-space:pre-wrap;word-break:break-all;color:#c0392b&quot;&gt;&apos;+esc(violation.nodes[0].html.substring(0,300))+&apos;&lt;/pre&gt;&lt;/details&gt;&apos;;html+=&apos;&lt;/div&gt;&apos;;});}html+=&apos;&lt;div style=&quot;background:#fff3cd;border-radius:6px;padding:12px;margin-top:16px;font-size:12px;color:#856404&quot;&gt;&lt;strong&gt;Let op:&lt;/strong&gt; Automatische tools vinden ~30-40% van alle problemen. Controleer ook handmatig: toetsenbordnavigatie, schermlezer en kleurcontrast.&lt;/div&gt;&apos;;body.innerHTML=html;}var script=document.createElement(&quot;script&quot;);script.src=&quot;https://unpkg.com/axe-core@4/axe.min.js&quot;;script.onload=function(){axe.run(document,{runOnly:{type:&quot;tag&quot;,values:[&quot;wcag2a&quot;,&quot;wcag2aa&quot;,&quot;wcag21a&quot;,&quot;wcag21aa&quot;]}},function(err,results){if(err){body.innerHTML=&apos;&lt;div style=&quot;color:red;padding:20px&quot;&gt;Scan mislukt: &apos;+esc(err.message)+&apos;&lt;/div&gt;&apos;;return;}render(results);});};script.onerror=function(){body.innerHTML=&apos;&lt;div style=&quot;padding:20px;color:#c0392b&quot;&gt;&lt;strong&gt;Kan scanner niet laden.&lt;/strong&gt;&lt;br&gt;&lt;br&gt;Controleer je internetverbinding. De scanner heeft &amp;eacute;&amp;eacute;n extern bestand nodig (axe-core via unpkg.com).&lt;/div&gt;&apos;;};document.head.appendChild(script);})();">♿ Scan deze pagina</a>
+        </div>
+
+        <div class="tip">
+          <strong>Zie je de favorietenbalk niet?</strong> Druk op <strong>Ctrl + Shift + B</strong> in Edge om hem zichtbaar te maken.
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-number">2</div>
+      <div class="step-content">
+        <h2>Ga naar de website die je wilt scannen</h2>
+        <p>Typ het adres in de adresbalk van Edge en open de website, net als normaal.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-number">3</div>
+      <div class="step-content">
+        <h2>Klik op "♿ Scan deze pagina" in je favorietenbalk</h2>
+        <p>Er verschijnt een paneel aan de rechterkant met alle gevonden problemen, inclusief uitleg en oplossingen. Klik nogmaals om het paneel te sluiten.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <hr class="divider">
+
+  <p style="font-size:0.8rem;color:#888;text-align:center;line-height:1.6">
+    Controleert op <strong>WCAG 2.1 niveau AA</strong> – vereist door het
+    <em>Besluit digitale toegankelijkheid overheid</em> en EN 301 549.<br>
+    Automatische scan vindt ~30–40% van alle problemen. Handmatige controle blijft nodig.
+  </p>
+</div>
+</body>
+</html>
