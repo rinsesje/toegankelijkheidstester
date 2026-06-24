@@ -128,6 +128,24 @@ a{color:var(--blauw2)}
 .handmatig-blok h3{font-size:.95rem;font-weight:700;color:var(--blauw);margin-bottom:.6rem}
 .handmatig-blok ul{padding-left:1.2rem;line-height:2;color:#444}
 
+/* ─ Pagina-overzicht tabel ─ */
+.pagina-overzicht{background:var(--wit);border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.07);margin-bottom:1.5rem;overflow:hidden}
+.pagina-overzicht h3{font-size:.95rem;font-weight:700;color:var(--blauw);padding:.85rem 1rem;border-bottom:1px solid var(--rand);margin:0}
+.pagina-tabel{width:100%;border-collapse:collapse;font-size:.82rem}
+.pagina-tabel th{background:#f8fafc;padding:.5rem .75rem;text-align:left;font-weight:700;color:var(--grijs);border-bottom:1px solid var(--rand);white-space:nowrap}
+.pagina-tabel td{padding:.5rem .75rem;border-bottom:1px solid #f5f5f5;vertical-align:middle}
+.pagina-tabel tr:last-child td{border-bottom:none}
+.pagina-tabel tr.klikbaar:hover td{background:#f5f8fc;cursor:pointer}
+.pagina-tabel .url-cel{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--blauw2)}
+.pagina-tabel .score-cel{font-weight:700;white-space:nowrap}
+.pagina-tabel .fout-rij td{color:#999;font-style:italic}
+.cnt{display:inline-block;border-radius:4px;padding:.1rem .4rem;font-size:.75rem;font-weight:700;min-width:22px;text-align:center}
+.cnt.k{background:#fdf0ef;color:var(--rood)}
+.cnt.e{background:#fef4ec;color:#d35400}
+.cnt.m{background:#eaf2fb;color:#2471a3}
+.cnt.kl{background:#eafaf1;color:#1e8449}
+.cnt.nul{background:#f5f5f5;color:#bbb}
+
 /* ─ Footer ─ */
 footer{background:#2c3e50;color:#aaa;text-align:center;padding:1.25rem;font-size:.78rem;margin-top:2rem}
 
@@ -966,6 +984,75 @@ const CHECKS = [
       return {ok:n.length===0,nodes:n.slice(0,4).map(hn),tel:n.length};
     }
   },
+  /* ── Extra checks ── */
+  {
+    id:"iframe-title", cat:"aria", wcag:"4.1.2", level:"A", impact:"ernstig",
+    titel:"Iframes zonder title-attribuut",
+    beschr:"Screenreaders gebruiken het title-attribuut van een iframe om de inhoud aan te kondigen.",
+    opl:'Voeg een beschrijvend title toe: <iframe title="Kaart van Amsterdam" src="...">.',
+    run(doc){ const n=[...doc.querySelectorAll("iframe")].filter(f=>!f.getAttribute("title")&&!f.getAttribute("aria-label")&&!f.getAttribute("aria-labelledby")); return {ok:n.length===0,nodes:n.slice(0,4).map(hn),tel:n.length}; }
+  },
+  {
+    id:"pdf-links", cat:"navigatie", wcag:"2.4.4", level:"A", impact:"matig",
+    titel:"Links naar PDF zonder aanduiding",
+    beschr:"Links die een PDF openen moeten dat vermelden zodat gebruikers weten wat te verwachten.",
+    opl:'Vermeld het bestandstype in de linktekst: "Jaarverslag 2024 (PDF)" of voeg een icoon toe met aria-label.',
+    run(doc){
+      const n=[...doc.querySelectorAll("a[href]")].filter(a=>{
+        const h=(a.getAttribute("href")||"").toLowerCase();
+        const t=(a.textContent+(a.getAttribute("aria-label")||"")).toLowerCase();
+        return h.endsWith(".pdf")&&!/pdf/.test(t);
+      });
+      return {ok:n.length===0,nodes:n.slice(0,4).map(hn),tel:n.length};
+    }
+  },
+  {
+    id:"form-submit", cat:"formulier", wcag:"3.2.2", level:"A", impact:"matig",
+    titel:"Formulier zonder duidelijke verzendknop",
+    beschr:"Elk formulier moet een zichtbare verzendknop hebben zodat de gebruiker bewust het formulier instuurt.",
+    opl:'Voeg toe: <button type="submit">Versturen</button> of <input type="submit" value="Versturen">.',
+    run(doc){
+      const n=[...doc.querySelectorAll("form")].filter(f=>!f.querySelector("button[type=submit],input[type=submit],button:not([type]),button[type=button]"));
+      return {ok:n.length===0,nodes:n.slice(0,3).map(f=>f.outerHTML.substring(0,200)),tel:n.length};
+    }
+  },
+  {
+    id:"aria-expanded-aanwezig", cat:"aria", wcag:"4.1.2", level:"A", impact:"matig",
+    titel:"Uitklapmenu's zonder aria-expanded",
+    beschr:"Knoppen die een menu of accordeon in/uitklappen moeten aria-expanded gebruiken.",
+    opl:'Voeg aria-expanded="false" toe aan de knop en zet het op "true" als het menu open is.',
+    run(doc){
+      const n=[...doc.querySelectorAll("button,a[href='#'],[role=button]")].filter(el=>{
+        const t=(el.textContent||"").toLowerCase();
+        const h=(el.getAttribute("onclick")||el.getAttribute("data-toggle")||el.getAttribute("data-bs-toggle")||"").toLowerCase();
+        return (/menu|nav|dropdown|toggle|accordion|uitkl|collapse/i.test(t)||/collapse|dropdown|toggle/i.test(h))&&!el.hasAttribute("aria-expanded");
+      });
+      return {ok:n.length===0,nodes:n.slice(0,4).map(hn),tel:n.length};
+    }
+  },
+  {
+    id:"reflow-fixed-width", cat:"visueel", wcag:"1.4.10", level:"AA", impact:"matig",
+    titel:"Vaste breedte-waarden groter dan 320px (Reflow)",
+    beschr:"Vaste breedtes voorkomen dat inhoud zich herschikt bij 400% zoom of op kleine schermen.",
+    opl:"Gebruik max-width in plaats van width, en relatieve eenheden (%, vw) in plaats van vaste px-waarden.",
+    run(doc){
+      const n=[...doc.querySelectorAll("[style*='width']")].filter(el=>{
+        const m=/width\s*:\s*(\d+)px/i.exec(el.getAttribute("style")||"");
+        return m&&parseInt(m[1])>320;
+      });
+      return {ok:n.length===0,nodes:n.slice(0,4).map(hn),tel:n.length};
+    }
+  },
+  {
+    id:"object-embed", cat:"tekstalt", wcag:"1.1.1", level:"A", impact:"ernstig",
+    titel:"<object> of <embed> zonder tekstalternatief",
+    beschr:"Ingesloten objecten moeten een tekstalternatief hebben voor gebruikers die de inhoud niet kunnen zien.",
+    opl:"Voeg een beschrijvende tekst toe als inhoud van het <object>-element, of gebruik aria-label.",
+    run(doc){
+      const n=[...doc.querySelectorAll("object,embed")].filter(el=>!el.getAttribute("aria-label")&&!el.textContent.trim()&&!el.getAttribute("title"));
+      return {ok:n.length===0,nodes:n.slice(0,4).map(hn),tel:n.length};
+    }
+  },
   {
     id:"generieke-paginatitel", cat:"technisch", wcag:"2.4.2", level:"A", impact:"matig",
     titel:"Generieke of standaard paginatitel",
@@ -1121,6 +1208,7 @@ function aggregeerResultaten(paginas){
    7. UI – RENDERING
    ══════════════════════════════ */
 let huidigeResultaten=null;
+let allePaginas=null; // crawl-modus: alle pagina's met individuele resultaten
 
 function toonDashboard(resultaten, info){
   const { paginaAantal, startUrl, paginaTitel } = info;
@@ -1149,6 +1237,8 @@ function toonDashboard(resultaten, info){
     </div>`;
   }).join("");
 
+  const paginaOverzichtHtml=paginaAantal>1&&allePaginas?toonPaginaOverzichtHtml(allePaginas):"";
+
   document.getElementById("dashboard").innerHTML=`
     <div class="overzicht">
       <div class="score-groot" style="border-color:${sk};color:${sk}">
@@ -1161,12 +1251,93 @@ function toonDashboard(resultaten, info){
       </div>
     </div>
     <div class="cat-grid">${catKaarten}</div>
+    ${paginaOverzichtHtml}
     <div class="handmatig-blok">
       <h3>🙋 Handmatig controleren (automatische tools vinden ~30–40% van alle problemen)</h3>
       <ul>${HANDMATIG_CHECKS.map(c=>`<li>${c.icoon} ${c.tekst}</li>`).join("")}</ul>
     </div>`;
   document.getElementById("dashboard").style.display="block";
   document.getElementById("details").innerHTML="";
+}
+
+/* ── Pagina-overzicht (crawl-modus) ── */
+function toonPaginaOverzichtHtml(paginas){
+  function telImp(p,imp){ return CHECKS.filter(c=>c.impact===imp&&p.resultaten[c.id]&&!p.resultaten[c.id].ok).length; }
+  function cnt(n,kls){ return `<span class="cnt ${kls}${n===0?" nul":""}">${n}</span>`; }
+
+  const rijen=paginas.map((p,i)=>{
+    if(p.fout) return `<tr class="fout-rij"><td class="url-cel" title="${esc(p.url)}">${esc(p.url.replace(/^https?:\/\//,""))}</td><td colspan="5" style="color:#c0392b">⚠ ${esc(p.fout.substring(0,80))}</td></tr>`;
+    const s=berekenTotaalScore(p.resultaten);
+    const k=telImp(p,"kritiek"),e=telImp(p,"ernstig"),m=telImp(p,"matig"),kl=telImp(p,"klein");
+    return `<tr class="klikbaar" onclick="toonPaginaDetail(${i})" title="Klik voor details van deze pagina">
+      <td class="url-cel" title="${esc(p.url)}">${esc(p.url.replace(/^https?:\/\//,""))}</td>
+      <td class="score-cel" style="color:${scoreKleur(s)}">${s}</td>
+      <td>${cnt(k,"k")}</td><td>${cnt(e,"e")}</td><td>${cnt(m,"m")}</td><td>${cnt(kl,"kl")}</td>
+    </tr>`;
+  }).join("");
+
+  return `<div class="pagina-overzicht">
+    <h3>📋 Gescande pagina's (${paginas.length}) — klik op een rij voor details</h3>
+    <div style="overflow-x:auto">
+    <table class="pagina-tabel">
+      <thead><tr><th>Pagina-URL</th><th>Score</th><th>🔴 Kritiek</th><th>🟠 Ernstig</th><th>🔵 Matig</th><th>🟢 Klein</th></tr></thead>
+      <tbody>${rijen}</tbody>
+    </table></div>
+  </div>`;
+}
+
+function toonPaginaDetail(idx){
+  const p=allePaginas[idx];
+  if(!p) return;
+  const score=berekenTotaalScore(p.resultaten);
+
+  // Bouw check-items op basis van pagina-resultaten (zelfde stijl als toonDetail)
+  const probleemChecks=CHECKS.filter(c=>p.resultaten[c.id]&&!p.resultaten[c.id].ok);
+
+  const items=probleemChecks.map((ch,i)=>{
+    const r=p.resultaten[ch.id];
+    let icoon; if(ch.impact==="kritiek"||ch.impact==="ernstig") icoon="❌"; else if(ch.impact==="matig") icoon="⚠️"; else icoon="ℹ️";
+    const impBadge=`<span class="badge badge-${ch.impact}">${ch.impact}</span>`;
+    const wcagBadge=ch.wcag?`<span class="badge badge-wcag">WCAG ${ch.wcag}</span>`:"";
+    const levelBadge=ch.level?`<span class="badge badge-${ch.level.toLowerCase()}">${ch.level}</span>`:"";
+    const catNaam=CATEGORIEEN.find(c=>c.id===ch.cat);
+    const catBadge=catNaam?`<span class="badge" style="background:#f0f4f8;color:#555">${catNaam.icoon} ${catNaam.naam}</span>`:"";
+    const nodeHtml=r.nodes?.length?`<div class="veld"><h4>Gevonden in de code (${r.tel} voorkomens)</h4>${r.nodes.slice(0,4).map(n=>`<div class="code-blok"><pre>${esc(n)}</pre></div>`).join("")}</div>`:"";
+    const randKleur=ch.impact==="kritiek"||ch.impact==="ernstig"?"var(--rood)":ch.impact==="matig"?"#2471a3":"var(--groen)";
+    return `<div class="check-item open" style="border-left:3px solid ${randKleur}">
+      <div class="check-kop" onclick="this.closest('.check-item').classList.toggle('open')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')this.closest('.check-item').classList.toggle('open')">
+        <span class="check-status">${icoon}</span>
+        <div class="check-info"><h3>${esc(ch.titel)}</h3>
+          <div class="check-meta">${impBadge}${wcagBadge}${levelBadge}${catBadge}</div></div>
+        <span class="check-pijl">▼</span>
+      </div>
+      <div class="check-body">
+        <div class="veld"><h4>Wat wordt gecontroleerd?</h4><p>${esc(ch.beschr)}</p></div>
+        <div class="veld oplossing-vak"><h4>💡 Hoe op te lossen</h4><p>${esc(ch.opl)}</p></div>
+        ${nodeHtml}
+      </div>
+    </div>`;
+  }).join("");
+
+  const leeg=`<p style="padding:1rem;color:var(--grijs)">Geen problemen gevonden op deze pagina. 🎉</p>`;
+  const kortUrl=p.url.replace(/^https?:\/\//,"");
+
+  document.getElementById("details").innerHTML=`
+    <div style="max-width:960px;margin:0 auto 1.5rem;padding:0 1rem">
+      <p class="terug" onclick="document.getElementById('details').innerHTML='';window.scrollTo(0,document.getElementById('dashboard').offsetTop)" style="margin-bottom:.75rem">← Terug naar overzicht</p>
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.25rem;flex-wrap:wrap">
+        <div class="score-groot" style="border-color:${scoreKleur(score)};color:${scoreKleur(score)};width:72px;height:72px;border-width:5px">
+          <span class="g" style="font-size:1.5rem">${score}</span><span class="v">${scoreLabel(score)}</span>
+        </div>
+        <div>
+          <h2 style="font-size:1rem;color:var(--blauw);word-break:break-all">${esc(kortUrl)}</h2>
+          ${p.paginaTitel?`<span style="font-size:.85rem;color:var(--grijs)">${esc(p.paginaTitel)}</span>`:""}
+          <p style="font-size:.8rem;color:var(--grijs);margin-top:.2rem">${probleemChecks.length} probleem${probleemChecks.length!==1?"en":""} gevonden</p>
+        </div>
+      </div>
+      <div class="check-lijst">${probleemChecks.length?items:leeg}</div>
+    </div>`;
+  document.getElementById("details").scrollIntoView({behavior:"smooth",block:"start"});
 }
 
 function toonImpactDetail(impact){
@@ -1327,6 +1498,7 @@ async function startScan(){
 
   try{
     if(modus==="pagina"){
+      allePaginas=null;
       const resultaat=await scanPagina(url,(t,p)=>setVoortgang(t,p));
       huidigeResultaten=resultaat.resultaten;
       toonDashboard(resultaat.resultaten,{paginaAantal:1, startUrl:url, paginaTitel:resultaat.paginaTitel});
@@ -1337,6 +1509,7 @@ async function startScan(){
       const wachtMs=parseInt(document.getElementById("wacht-ms").value)||300;
 
       const paginas=await crawlSite(url,{maxPaginas,inclPat,uitslPat,wachtMs},(t,p)=>setVoortgang(t,p));
+      allePaginas=paginas;
       const gecomb=aggregeerResultaten(paginas);
       huidigeResultaten=gecomb;
       toonDashboard(gecomb,{paginaAantal:paginas.length, startUrl:url, paginaTitel:""});
