@@ -661,13 +661,19 @@ const CHECKS = [
   {
     id:"multiple-ways", cat:"navigatie", wcag:"2.4.5", level:"AA", impact:"klein",
     titel:"Geen meerdere navigatiemogelijkheden",
-    beschr:"Gebruikers moeten meerdere manieren hebben om inhoud te vinden: navigatie, zoekfunctie, sitemap enz.",
-    opl:"Zorg voor zowel een navigatiemenu als een zoekfunctie of sitemap.",
+    beschr:"Gebruikers moeten meerdere manieren hebben om inhoud te vinden: navigatiemenu, zoekfunctie, sitemap of inhoudsopgave.",
+    opl:"Zorg voor minimaal twee van: navigatiemenu, zoekfunctie, sitemap of gerelateerde-links-sectie.",
     run(doc){
       const nav=!!doc.querySelector("nav,[role=navigation]");
-      const zoek=!!doc.querySelector("input[type=search],[role=search],form[role=search]");
-      const ok=nav&&zoek;
-      return {ok,nodes:ok?[]:["Navigatie aanwezig: "+(nav?"✓":"✗")+"  Zoekfunctie: "+(zoek?"✓":"✗")],tel:ok?0:1};
+      const zoek=!!doc.querySelector("input[type=search],[role=search],form[role=search],input[placeholder*='zoek' i],input[placeholder*='search' i]");
+      const sitemap=!![...doc.querySelectorAll("a[href]")].some(a=>{
+        const h=(a.getAttribute("href")||"").toLowerCase();
+        const t=(a.textContent||"").toLowerCase().trim();
+        return h.includes("sitemap")||t==="sitemap"||t==="site map"||t==="sitekaart";
+      });
+      const manieren=[nav,zoek,sitemap].filter(Boolean).length;
+      const ok=manieren>=2;
+      return {ok,nodes:ok?[]:["Navigatie: "+(nav?"✓":"✗")+"  Zoekfunctie: "+(zoek?"✓":"✗")+"  Sitemap: "+(sitemap?"✓":"✗")],tel:ok?0:1};
     }
   },
   {
